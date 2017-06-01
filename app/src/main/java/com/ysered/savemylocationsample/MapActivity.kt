@@ -1,20 +1,29 @@
 package com.ysered.savemylocationsample
 
+import android.arch.lifecycle.LifecycleActivity
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
+import android.location.Location
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.ysered.savemylocationsample.util.debug
 import com.ysered.savemylocationsample.util.processPermissionResults
 import com.ysered.savemylocationsample.util.requestLocationPermissionsIfNeeded
 import com.ysered.savemylocationsample.util.showToast
 
 @SuppressWarnings("MissingPermission")
-class MapActivity : AppCompatActivity(), OnMapReadyCallback {
+class MapActivity : LifecycleActivity(), OnMapReadyCallback {
 
     private val LOCATION_PERMISSION_REQUEST = 1
+    private val CAMERA_ZOOM = 16f
 
     private val mapFragment by lazy { supportFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment }
+    private val locationViewModel: LocationViewModel by lazy { ViewModelProviders.of(this).get(LocationViewModel::class.java) }
+    private lateinit var googleMap: GoogleMap
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,17 +42,30 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    override fun onMapReady(map: GoogleMap?) {
-        map?.let {
+    override fun onMapReady(googleMap: GoogleMap?) {
+        googleMap?.let {
             // TODO: setOnMapClickListener
             // TODO: setOnMarkerClickListener
             // TODO: setOnMarkerDragListener
             it.isMyLocationEnabled = true
             it.uiSettings.isMapToolbarEnabled = false
+            it.uiSettings.isMyLocationButtonEnabled = false
+
+            locationViewModel.location.observe(this, Observer { location ->
+                debug("Observed location update: $location")
+                location?.let { moveCamera(googleMap, it) }
+            })
+            this.googleMap = it
         }
     }
 
     private fun initMap() {
         mapFragment.getMapAsync(this)
+    }
+
+    private fun moveCamera(googleMap: GoogleMap, location: Location) {
+        val current = LatLng(location.latitude, location.longitude)
+        googleMap.moveCamera(CameraUpdateFactory.newLatLng(current))
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(current, CAMERA_ZOOM))
     }
 }
