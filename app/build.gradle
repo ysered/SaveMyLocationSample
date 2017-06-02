@@ -11,6 +11,11 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
     }
     buildTypes {
         debug {
@@ -28,6 +33,7 @@ ext {
     supportLibraryVersion = '25.3.1'
     constraintLayoutVersion = '1.0.2'
     archLifecycleVersion = '1.0.0-alpha1'
+    roomVersion = '1.0.0-alpha1'
     playServicesVersion = '10.2.6'
     junitVersion = '4.12'
     espressoVersion = '2.2.2'
@@ -42,8 +48,13 @@ dependencies {
     // Support libraries
     compile "com.android.support:appcompat-v7:$supportLibraryVersion"
     compile "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
+
+    // Architecture components libraries
     compile "android.arch.lifecycle:extensions:$archLifecycleVersion"
     annotationProcessor "android.arch.lifecycle:compiler:$archLifecycleVersion"
+    compile "android.arch.persistence.room:runtime:$roomVersion"
+    annotationProcessor "android.arch.persistence.room:compiler:$roomVersion"
+    kapt "android.arch.persistence.room:compiler:$roomVersion"
 
     // Play services
     compile "com.google.android.gms:play-services-location:$playServicesVersion"
