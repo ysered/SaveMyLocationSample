@@ -11,7 +11,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 
 @SuppressWarnings("MissingPermission")
-class LocationLiveData(context: Context) : MutableLiveData<Location>(),
+class LocationUpdatesLiveData(context: Context) : MutableLiveData<Location>(),
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
