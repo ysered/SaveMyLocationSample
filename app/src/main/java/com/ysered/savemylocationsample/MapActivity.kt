@@ -23,8 +23,6 @@ class MapActivity : LifecycleActivity(), OnMapReadyCallback {
     private lateinit var mapFragment: SupportMapFragment
     private lateinit var locationViewModel: LocationViewModel
 
-    private val initMap: () -> Unit = { mapFragment.getMapAsync(this) }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
@@ -32,14 +30,13 @@ class MapActivity : LifecycleActivity(), OnMapReadyCallback {
         mapFragment = supportFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment
         locationViewModel = ViewModelProviders.of(this).get(LocationViewModel::class.java)
 
-        requestLocationPermissionsIfNeeded(LOCATION_PERMISSION_REQUEST, initMap)
+        requestLocationPermissionsIfNeeded(LOCATION_PERMISSION_REQUEST, this::initMap)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         when (requestCode) {
             LOCATION_PERMISSION_REQUEST -> processPermissionResults(permissions, grantResults,
-                    onGranted = initMap,
-                    onDenied = { showToast(R.string.enable_location_permission) })
+                    onGranted = this::initMap, onDenied = { showToast(R.string.enable_location_permission) })
             else -> super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
     }
@@ -52,20 +49,26 @@ class MapActivity : LifecycleActivity(), OnMapReadyCallback {
             it.isMyLocationEnabled = true
             it.uiSettings.isMapToolbarEnabled = false
             it.uiSettings.isMyLocationButtonEnabled = false
-            bindObservers(it)
+            bindViewModelObservers(it)
         }
     }
 
-    private fun bindObservers(googleMap: GoogleMap) {
+    private fun initMap() {
+        mapFragment.getMapAsync(this)
+    }
+
+    private fun bindViewModelObservers(googleMap: GoogleMap) {
         locationViewModel.locationUpdates.observe(this, Observer { location ->
-            location?.let { // move camera
+            location?.let {
+                // move camera to current location
                 val current = LatLng(location.latitude, location.longitude)
                 googleMap.moveCamera(CameraUpdateFactory.newLatLng(current))
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(current, CAMERA_ZOOM))
             }
         })
-        locationViewModel.latLng.observe(this, Observer { myLocationEntity ->
-            myLocationEntity?.let { // add marker
+        locationViewModel.latLng.observe(this, Observer { latLng ->
+            latLng?.let {
+                // add marker
                 googleMap.addMarker(MarkerOptions().position(it))
             }
         })
