@@ -1,4 +1,4 @@
-package com.ysered.savemylocationsample.util
+package com.ysered.extension
 
 import android.Manifest
 import android.app.Activity

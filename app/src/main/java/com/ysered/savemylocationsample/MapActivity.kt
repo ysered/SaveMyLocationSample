@@ -10,9 +10,9 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.ysered.savemylocationsample.util.processPermissionResults
-import com.ysered.savemylocationsample.util.requestLocationPermissionsIfNeeded
-import com.ysered.savemylocationsample.util.showToast
+import com.ysered.extension.processPermissionResults
+import com.ysered.extension.requestLocationPermissionsIfNeeded
+import com.ysered.extension.showToast
 
 @SuppressWarnings("MissingPermission")
 class MapActivity : LifecycleActivity(), OnMapReadyCallback {
