@@ -35,8 +35,11 @@ class MapActivity : LifecycleActivity(), OnMapReadyCallback {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         when (requestCode) {
-            LOCATION_PERMISSION_REQUEST -> processPermissionResults(permissions, grantResults,
-                    onGranted = this::initMap, onDenied = { showToast(R.string.enable_location_permission) })
+            LOCATION_PERMISSION_REQUEST ->
+                processPermissionResults(permissions,
+                        grantResults,
+                        onGranted = this::initMap,
+                        onDenied = { showToast(R.string.enable_location_permission) })
             else -> super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
     }
