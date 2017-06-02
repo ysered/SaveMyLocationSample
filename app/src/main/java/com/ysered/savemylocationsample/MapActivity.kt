@@ -30,7 +30,7 @@ class MapActivity : LifecycleActivity(), OnMapReadyCallback {
         mapFragment = supportFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment
         locationViewModel = ViewModelProviders.of(this).get(LocationViewModel::class.java)
 
-        requestLocationPermissionsIfNeeded(LOCATION_PERMISSION_REQUEST, this::initMap)
+        requestLocationPermissionsIfNeeded(LOCATION_PERMISSION_REQUEST, onGranted = this::initMap)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
