@@ -6,12 +6,10 @@ import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.GoogleMap.OnCameraMoveListener
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.ysered.extension.debug
 import com.ysered.extension.processPermissionResults
 import com.ysered.extension.requestLocationPermissionsIfNeeded
 import com.ysered.extension.showToast
@@ -23,14 +21,14 @@ class MapActivity : LifecycleActivity(), OnMapReadyCallback {
     private val CAMERA_ZOOM = 16f
 
     private lateinit var mapFragment: SupportMapFragment
-    private lateinit var locationViewModel: LocationViewModel
+    private lateinit var mapViewModel: MapViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
 
         mapFragment = supportFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment
-        locationViewModel = ViewModelProviders.of(this).get(LocationViewModel::class.java)
+        mapViewModel = ViewModelProviders.of(this).get(MapViewModel::class.java)
 
         requestLocationPermissionsIfNeeded(LOCATION_PERMISSION_REQUEST, onGranted = this::initMap)
     }
@@ -48,13 +46,13 @@ class MapActivity : LifecycleActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap?) {
         googleMap?.let {
-            it.setOnMapClickListener { locationViewModel.lastAddedCoordinate.value = it }
-            it.setOnCameraMoveListener { locationViewModel.cameraZoom = googleMap.cameraPosition.zoom }
+            it.setOnMapClickListener { mapViewModel.lastAddedCoordinate.value = it }
+            it.setOnCameraMoveListener { mapViewModel.cameraZoom = googleMap.cameraPosition.zoom }
             // TODO: setOnMarkerClickListener
             it.isMyLocationEnabled = true
             it.uiSettings.isMapToolbarEnabled = false
             it.uiSettings.isMyLocationButtonEnabled = false
-            locationViewModel.coordinates.forEach {
+            mapViewModel.coordinates.forEach {
                 addMarker(googleMap, it)
             }
             bindViewModelObservers(it)
@@ -66,15 +64,15 @@ class MapActivity : LifecycleActivity(), OnMapReadyCallback {
     }
 
     private fun bindViewModelObservers(googleMap: GoogleMap) {
-        locationViewModel.locationUpdates.observe(this, Observer { location ->
+        mapViewModel.locationUpdates.observe(this, Observer { location ->
             location?.let {
                 // move camera to current location
                 val current = LatLng(location.latitude, location.longitude)
                 googleMap.moveCamera(CameraUpdateFactory.newLatLng(current))
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(current, locationViewModel.cameraZoom))
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(current, mapViewModel.cameraZoom))
             }
         })
-        locationViewModel.lastAddedCoordinate.observe(this, Observer { latLng ->
+        mapViewModel.lastAddedCoordinate.observe(this, Observer { latLng ->
             latLng?.let {
                 addMarker(googleMap, it)
             }

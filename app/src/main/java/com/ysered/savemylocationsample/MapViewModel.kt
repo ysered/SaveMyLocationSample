@@ -5,7 +5,7 @@ import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.MutableLiveData
 import com.google.android.gms.maps.model.LatLng
 
-class LocationViewModel(application: Application) : AndroidViewModel(application) {
+class MapViewModel(application: Application) : AndroidViewModel(application) {
 
     val locationUpdates = LocationUpdatesLiveData(application.applicationContext)
 
