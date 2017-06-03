@@ -49,7 +49,6 @@ class MapActivity : LifecycleActivity(), OnMapReadyCallback {
         googleMap?.let {
             it.setOnMapClickListener { locationViewModel.lastAddedCoordinate.value = it }
             // TODO: setOnMarkerClickListener
-            // TODO: setOnMarkerDragListener
             it.isMyLocationEnabled = true
             it.uiSettings.isMapToolbarEnabled = false
             it.uiSettings.isMyLocationButtonEnabled = false
