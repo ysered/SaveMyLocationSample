@@ -21,12 +21,13 @@ class LocationUpdatesLiveData(context: Context) : MutableLiveData<Location>(),
             .addApi(LocationServices.API)
             .build()
 
-    private val locationRequest = LocationRequest.create()
-            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-            .setInterval(1000)
-            .setFastestInterval(1000)
-            .setExpirationDuration(3000)
-            .setNumUpdates(1)
+    private val locationRequest = LocationRequest.create().apply {
+        priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        interval = 1000
+        fastestInterval = 1000
+        numUpdates = 1
+        setExpirationDuration(3000)
+    }
 
     override fun onActive() {
         super.onActive()
