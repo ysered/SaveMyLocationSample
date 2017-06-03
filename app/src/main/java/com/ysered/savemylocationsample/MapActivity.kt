@@ -6,6 +6,7 @@ import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.GoogleMap.OnCameraMoveListener
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
@@ -48,6 +49,7 @@ class MapActivity : LifecycleActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap?) {
         googleMap?.let {
             it.setOnMapClickListener { locationViewModel.lastAddedCoordinate.value = it }
+            it.setOnCameraMoveListener { locationViewModel.cameraZoom = googleMap.cameraPosition.zoom }
             // TODO: setOnMarkerClickListener
             it.isMyLocationEnabled = true
             it.uiSettings.isMapToolbarEnabled = false
@@ -69,7 +71,7 @@ class MapActivity : LifecycleActivity(), OnMapReadyCallback {
                 // move camera to current location
                 val current = LatLng(location.latitude, location.longitude)
                 googleMap.moveCamera(CameraUpdateFactory.newLatLng(current))
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(current, CAMERA_ZOOM))
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(current, locationViewModel.cameraZoom))
             }
         })
         locationViewModel.lastAddedCoordinate.observe(this, Observer { latLng ->

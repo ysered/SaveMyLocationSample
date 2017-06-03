@@ -25,4 +25,5 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    var cameraZoom: Float = 16f
 }
