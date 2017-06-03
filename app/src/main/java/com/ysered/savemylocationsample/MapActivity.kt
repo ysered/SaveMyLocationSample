@@ -18,7 +18,6 @@ import com.ysered.extension.showToast
 class MapActivity : LifecycleActivity(), OnMapReadyCallback {
 
     private val LOCATION_PERMISSION_REQUEST = 1
-    private val CAMERA_ZOOM = 16f
 
     private lateinit var mapFragment: SupportMapFragment
     private lateinit var mapViewModel: MapViewModel
