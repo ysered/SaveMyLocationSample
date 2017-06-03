@@ -8,5 +8,21 @@ import com.google.android.gms.maps.model.LatLng
 class LocationViewModel(application: Application) : AndroidViewModel(application) {
 
     val locationUpdates = LocationUpdatesLiveData(application.applicationContext)
-    val latLng = MutableLiveData<LatLng>()
+
+    val coordinates: MutableList<LatLng> = mutableListOf()
+
+    val lastAddedCoordinate = object : MutableLiveData<LatLng>() {
+        override fun getValue(): LatLng? {
+            value = null
+            return coordinates.last()
+        }
+
+        override fun setValue(value: LatLng?) {
+            super.setValue(value)
+            value?.let {
+                coordinates += value
+            }
+        }
+    }
+
 }

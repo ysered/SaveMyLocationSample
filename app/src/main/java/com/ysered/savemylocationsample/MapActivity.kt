@@ -10,6 +10,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.ysered.extension.debug
 import com.ysered.extension.processPermissionResults
 import com.ysered.extension.requestLocationPermissionsIfNeeded
 import com.ysered.extension.showToast
@@ -46,12 +47,15 @@ class MapActivity : LifecycleActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap?) {
         googleMap?.let {
-            it.setOnMapClickListener { locationViewModel.latLng.value = it }
+            it.setOnMapClickListener { locationViewModel.lastAddedCoordinate.value = it }
             // TODO: setOnMarkerClickListener
             // TODO: setOnMarkerDragListener
             it.isMyLocationEnabled = true
             it.uiSettings.isMapToolbarEnabled = false
             it.uiSettings.isMyLocationButtonEnabled = false
+            locationViewModel.coordinates.forEach {
+                addMarker(googleMap, it)
+            }
             bindViewModelObservers(it)
         }
     }
@@ -69,11 +73,14 @@ class MapActivity : LifecycleActivity(), OnMapReadyCallback {
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(current, CAMERA_ZOOM))
             }
         })
-        locationViewModel.latLng.observe(this, Observer { latLng ->
+        locationViewModel.lastAddedCoordinate.observe(this, Observer { latLng ->
             latLng?.let {
-                // add marker
-                googleMap.addMarker(MarkerOptions().position(it))
+                addMarker(googleMap, it)
             }
         })
+    }
+
+    private fun addMarker(googleMap: GoogleMap, latLng: LatLng) {
+        googleMap.addMarker(MarkerOptions().position(latLng))
     }
 }
