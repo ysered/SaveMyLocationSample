@@ -14,11 +14,11 @@ import com.ysered.extension.processPermissionResults
 import com.ysered.extension.requestLocationPermissionsIfNeeded
 import com.ysered.extension.showToast
 
+
 @SuppressWarnings("MissingPermission")
 class MapActivity : LifecycleActivity(), OnMapReadyCallback {
 
     private val LOCATION_PERMISSION_REQUEST = 1
-    private val DEFAULT_CAMERA_ZOOM = 16f
 
     private lateinit var mapFragment: SupportMapFragment
     private lateinit var mapViewModel: MapViewModel
@@ -50,13 +50,17 @@ class MapActivity : LifecycleActivity(), OnMapReadyCallback {
             it.uiSettings.isMapToolbarEnabled = false
             it.uiSettings.isMyLocationButtonEnabled = false
 
-            it.setOnMapClickListener {
-                mapViewModel.lastAddedCoordinate.value = it
+            it.setOnMapClickListener { latLng ->
+                mapViewModel.addCoordinate(latLng)
             }
             it.setOnCameraMoveListener {
                 mapViewModel.cameraPosition = it.cameraPosition
             }
-            // TODO: setOnMarkerClickListener
+            it.setOnMarkerClickListener { marker ->
+                mapViewModel.resolveAddress(marker)
+                return@setOnMarkerClickListener true
+            }
+
             mapViewModel.coordinates.forEach {
                 addMarker(googleMap, it)
             }
@@ -68,16 +72,18 @@ class MapActivity : LifecycleActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
     }
 
+    /**
+     * Start listening on changes from [MapViewModel]
+     */
     private fun bindObservers(googleMap: GoogleMap) {
-        mapViewModel.locationUpdates.observe(this, Observer { location ->
+        mapViewModel.observeLocationUpdates(this, Observer { location ->
             location?.let {
-                val target = mapViewModel.cameraPosition?.target ?: LatLng(location.latitude, location.longitude)
-                val zoom = mapViewModel.cameraPosition?.zoom ?: DEFAULT_CAMERA_ZOOM
+                val target = mapViewModel.cameraTarget ?: LatLng(location.latitude, location.longitude)
                 googleMap.moveCamera(CameraUpdateFactory.newLatLng(target))
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(target, zoom))
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(target, mapViewModel.cameraZoom))
             }
         })
-        mapViewModel.lastAddedCoordinate.observe(this, Observer { latLng ->
+        mapViewModel.observeLastAddedLocation(this, Observer { latLng ->
             latLng?.let {
                 addMarker(googleMap, it)
             }
