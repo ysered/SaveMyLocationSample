@@ -36,15 +36,12 @@ class LocationUpdatesLiveData(context: Context) : MutableLiveData<Location>(),
 
     override fun onInactive() {
         super.onInactive()
-        if (googleApiClient.isConnected) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this)
-        }
-        googleApiClient.disconnect()
+        stopListener()
     }
 
     override fun onConnected(bundle: Bundle?) {
-        val lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient)
-        lastLocation?.let { value = it }
+        //val lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient)
+        //lastLocation?.let { value = it }
         if (hasObservers()) {
             LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this)
         }
@@ -55,6 +52,16 @@ class LocationUpdatesLiveData(context: Context) : MutableLiveData<Location>(),
     override fun onConnectionFailed(result: ConnectionResult) {}
 
     override fun onLocationChanged(location: Location?) {
-        location?.let { value = it }
+        location?.let {
+            value = it
+            stopListener()
+        }
+    }
+
+    private fun stopListener() {
+        if (googleApiClient.isConnected) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this)
+            googleApiClient.disconnect()
+        }
     }
 }
