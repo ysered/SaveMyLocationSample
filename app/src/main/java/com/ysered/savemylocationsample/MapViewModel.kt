@@ -3,6 +3,7 @@ package com.ysered.savemylocationsample
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.MutableLiveData
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 
 class MapViewModel(application: Application) : AndroidViewModel(application) {
@@ -25,5 +26,5 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    var cameraZoom: Float = 16f
+    var cameraPosition: CameraPosition? = null
 }
