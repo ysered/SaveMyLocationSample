@@ -25,7 +25,7 @@ class LocationUpdatesLiveData(context: Context) : MutableLiveData<Location>(),
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         interval = 1000
         fastestInterval = 1000
-        numUpdates = 1
+        numUpdates = 3
         setExpirationDuration(3000)
     }
 
@@ -40,8 +40,8 @@ class LocationUpdatesLiveData(context: Context) : MutableLiveData<Location>(),
     }
 
     override fun onConnected(bundle: Bundle?) {
-        //val lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient)
-        //lastLocation?.let { value = it }
+        val lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient)
+        lastLocation?.let { value = it }
         if (hasObservers()) {
             LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this)
         }
@@ -54,7 +54,7 @@ class LocationUpdatesLiveData(context: Context) : MutableLiveData<Location>(),
     override fun onLocationChanged(location: Location?) {
         location?.let {
             value = it
-            stopListener()
+            //stopListener()
         }
     }
 

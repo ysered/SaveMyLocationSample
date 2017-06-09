@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    buildToolsVersion "25.0.3"
     defaultConfig {
         applicationId "com.ysered.savemylocationsample"
         minSdkVersion 16
@@ -29,11 +29,16 @@ android {
     }
 }
 
+kapt {
+    generateStubs = true
+}
+
 ext {
     supportLibraryVersion = '25.3.1'
     constraintLayoutVersion = '1.0.2'
-    archLifecycleVersion = '1.0.0-alpha1'
-    roomVersion = '1.0.0-alpha1'
+    dagger2Version = '2.11'
+    archLifecycleVersion = '1.0.0-alpha2'
+    roomVersion = '1.0.0-alpha2'
     playServicesVersion = '10.2.6'
     junitVersion = '4.12'
     espressoVersion = '2.2.2'
@@ -49,11 +54,17 @@ dependencies {
     compile "com.android.support:appcompat-v7:$supportLibraryVersion"
     compile "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
 
+    // Dagger 2
+    compile "com.google.dagger:dagger:$dagger2Version"
+    compile "com.google.dagger:dagger-android:$dagger2Version"
+    compile "com.google.dagger:dagger-android-support:$dagger2Version"
+    kapt "com.google.dagger:dagger-android-processor:$dagger2Version"
+    kapt "com.google.dagger:dagger-compiler:$dagger2Version"
+
     // Architecture components libraries
     compile "android.arch.lifecycle:extensions:$archLifecycleVersion"
-    annotationProcessor "android.arch.lifecycle:compiler:$archLifecycleVersion"
+    kapt "android.arch.lifecycle:compiler:$archLifecycleVersion"
     compile "android.arch.persistence.room:runtime:$roomVersion"
-    annotationProcessor "android.arch.persistence.room:compiler:$roomVersion"
     kapt "android.arch.persistence.room:compiler:$roomVersion"
 
     // Play services

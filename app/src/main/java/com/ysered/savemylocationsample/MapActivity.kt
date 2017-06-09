@@ -1,7 +1,9 @@
 package com.ysered.savemylocationsample
 
+import android.app.Activity
 import android.arch.lifecycle.LifecycleActivity
 import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -13,22 +15,31 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.ysered.extension.processPermissionResults
 import com.ysered.extension.requestLocationPermissionsIfNeeded
 import com.ysered.extension.showToast
+import dagger.android.AndroidInjector
+import dagger.android.DispatchingAndroidInjector
+import dagger.android.HasActivityInjector
+import javax.inject.Inject
 
 
 @SuppressWarnings("MissingPermission")
-class MapActivity : LifecycleActivity(), OnMapReadyCallback {
+class MapActivity : LifecycleActivity(), HasActivityInjector, OnMapReadyCallback {
 
     private val LOCATION_PERMISSION_REQUEST = 1
 
     private lateinit var mapFragment: SupportMapFragment
-    private lateinit var mapViewModel: MapViewModel
+
+    @Inject lateinit var injector: DispatchingAndroidInjector<Activity>
+    @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+    lateinit var mapViewModel: MapViewModel
+
+    override fun activityInjector(): AndroidInjector<Activity> = injector
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
 
+        mapViewModel = ViewModelProviders.of(this, viewModelFactory).get(MapViewModel::class.java)
         mapFragment = supportFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment
-        mapViewModel = ViewModelProviders.of(this).get(MapViewModel::class.java)
 
         requestLocationPermissionsIfNeeded(LOCATION_PERMISSION_REQUEST, onGranted = this::initMap)
     }
