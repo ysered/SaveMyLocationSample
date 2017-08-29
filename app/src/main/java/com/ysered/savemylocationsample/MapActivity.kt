@@ -12,9 +12,9 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.ysered.extension.processPermissionResults
-import com.ysered.extension.requestLocationPermissionsIfNeeded
-import com.ysered.extension.showToast
+import com.ysered.savemylocationsample.util.processPermissionResults
+import com.ysered.savemylocationsample.util.requestLocationPermissionsIfNeeded
+import com.ysered.savemylocationsample.util.showToast
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasActivityInjector

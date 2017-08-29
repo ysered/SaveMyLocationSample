@@ -3,6 +3,7 @@ package com.ysered.savemylocationsample
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
+import com.ysered.savemylocationsample.di.DaggerAppComponent
 import dagger.android.AndroidInjection
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasActivityInjector
@@ -12,13 +13,11 @@ class MyApp : Application(), HasActivityInjector {
 
     @Inject lateinit var injector: DispatchingAndroidInjector<Activity>
 
-    override fun activityInjector() = injector
-
     override fun onCreate() {
         super.onCreate()
 
         DaggerAppComponent.builder()
-                .application(this)
+                .setApplication(this)
                 .build()
                 .inject(this)
 
@@ -46,4 +45,6 @@ class MyApp : Application(), HasActivityInjector {
             // endregion
         })
     }
+
+    override fun activityInjector() = injector
 }
