@@ -5,6 +5,7 @@ import android.arch.lifecycle.ViewModelProvider
 import android.arch.persistence.room.RoomDatabase
 import android.location.Geocoder
 import com.ysered.savemylocationsample.*
+import com.ysered.savemylocationsample.database.AppDatabase
 import dagger.BindsInstance
 import dagger.Component
 import dagger.Module

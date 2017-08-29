@@ -46,10 +46,7 @@ ext {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
-    // Kotlin standard library
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-
-    // Support libraries
     compile "com.android.support:appcompat-v7:$supportLibraryVersion"
     compile "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
 
