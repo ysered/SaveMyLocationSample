@@ -9,6 +9,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.ysered.savemylocationsample.util.processPermissionResults
 import com.ysered.savemylocationsample.util.requestLocationPermissionsIfNeeded
@@ -20,7 +21,8 @@ import javax.inject.Inject
 
 
 @SuppressWarnings("MissingPermission")
-class MapActivity : AppCompatActivity(), LifecycleRegistryOwner, HasActivityInjector, OnMapReadyCallback {
+class MapActivity : AppCompatActivity(),
+        LifecycleRegistryOwner, HasActivityInjector, OnMapReadyCallback {
 
     private val LOCATION_PERMISSION_REQUEST = 1
 
@@ -64,7 +66,8 @@ class MapActivity : AppCompatActivity(), LifecycleRegistryOwner, HasActivityInje
             it.uiSettings.isMyLocationButtonEnabled = false
 
             it.setOnMapClickListener { latLng ->
-                mapViewModel.addCoordinate(latLng)
+                val marker = addMarker(it, latLng)
+                mapViewModel.saveMarker(marker)
             }
             it.setOnCameraMoveListener {
                 mapViewModel.cameraPosition = it.cameraPosition
@@ -73,10 +76,19 @@ class MapActivity : AppCompatActivity(), LifecycleRegistryOwner, HasActivityInje
                 mapViewModel.resolveAddress(marker)
                 return@setOnMarkerClickListener true
             }
+            it.setOnMarkerDragListener(object: GoogleMap.OnMarkerDragListener {
+                override fun onMarkerDragStart(marker: Marker?) {
+                    mapViewModel.startUpdatingLocation(marker)
+                }
 
-            mapViewModel.coordinates.forEach {
-                addMarker(googleMap, it)
-            }
+                override fun onMarkerDragEnd(marker: Marker?) {
+                    mapViewModel.finishUpdatingLocation(marker)
+                }
+
+                override fun onMarkerDrag(marker: Marker?) {}
+            })
+
+            mapViewModel.loadCoordinatesAsync()
             bindObservers(it)
         }
     }
@@ -97,14 +109,17 @@ class MapActivity : AppCompatActivity(), LifecycleRegistryOwner, HasActivityInje
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(target, cameraZoom))
             }
         })
-        mapViewModel.observeLastAddedLocation(this, Observer { latLng ->
-            latLng?.let {
-                addMarker(googleMap, it)
+        mapViewModel.coordinates.observe(this, Observer { entities ->
+            entities?.forEach {
+                addMarker(googleMap, LatLng(it.latitude, it.longitude))
             }
         })
     }
 
-    private fun addMarker(googleMap: GoogleMap, latLng: LatLng) {
-        googleMap.addMarker(MarkerOptions().position(latLng))
+    private fun addMarker(googleMap: GoogleMap, latLng: LatLng): Marker {
+        val options = MarkerOptions()
+                .position(latLng)
+                .draggable(true)
+        return googleMap.addMarker(options)
     }
 }

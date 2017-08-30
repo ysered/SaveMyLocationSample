@@ -39,6 +39,8 @@ ext {
     dagger2Version = '2.11'
     archVersion = '1.0.0-alpha9'
     playServicesVersion = '11.2.0'
+    rxAndroidVersion = '2.0.1'
+    rxJavaVersion = '2.1.0'
     junitVersion = '4.12'
     espressoVersion = '2.2.2'
 }
@@ -66,6 +68,10 @@ dependencies {
     // Play services
     compile "com.google.android.gms:play-services-location:$playServicesVersion"
     compile "com.google.android.gms:play-services-maps:$playServicesVersion"
+
+    // RxJava 2
+    compile "io.reactivex.rxjava2:rxandroid:$rxAndroidVersion"
+    compile "io.reactivex.rxjava2:rxjava:$rxJavaVersion"
 
     // Testing libraries
     testCompile "junit:junit:$junitVersion"

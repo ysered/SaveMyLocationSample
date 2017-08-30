@@ -2,10 +2,13 @@ package com.ysered.savemylocationsample.di
 
 import android.app.Application
 import android.arch.lifecycle.ViewModelProvider
-import android.arch.persistence.room.RoomDatabase
 import android.location.Geocoder
-import com.ysered.savemylocationsample.*
+import com.ysered.savemylocationsample.AddressResolver
+import com.ysered.savemylocationsample.AddressResolverImpl
+import com.ysered.savemylocationsample.LocationUpdatesLiveData
+import com.ysered.savemylocationsample.MyApp
 import com.ysered.savemylocationsample.database.AppDatabase
+import com.ysered.savemylocationsample.database.MyLocationDao
 import dagger.BindsInstance
 import dagger.Component
 import dagger.Module
@@ -33,7 +36,6 @@ interface AppComponent {
     fun inject(myApp: MyApp)
 }
 
-
 @Module(subcomponents = arrayOf(ViewModelSubComponent::class))
 class AppModule {
     @Singleton @Provides
@@ -49,10 +51,14 @@ class AppModule {
             = LocationUpdatesLiveData(application.applicationContext)
 
     @Singleton @Provides
-    fun providesDatabase(application: Application): RoomDatabase.Builder<AppDatabase>
-            = AppDatabase.get(application.applicationContext)
+    fun providesDatabase(application: Application): AppDatabase
+            = AppDatabase.create(application.applicationContext)
 
     @Singleton @Provides
-    fun provideViewModelFactory(viewModelSubComponentBuilder: ViewModelSubComponent.Builder) : ViewModelProvider.Factory
+    fun providesMyLocationDao(appDatabase: AppDatabase): MyLocationDao
+            = appDatabase.myLocationDao
+
+    @Singleton @Provides
+    fun provideViewModelFactory(viewModelSubComponentBuilder: ViewModelSubComponent.Builder): ViewModelProvider.Factory
             = ViewModelFactory(viewModelSubComponentBuilder.build())
 }

@@ -9,10 +9,10 @@ import android.content.Context
 @Database(entities = arrayOf(MyLocationEntity::class), version = 1)
 abstract class AppDatabase : RoomDatabase() {
     companion object {
-        val DATABASE_NAME = "save-my-location.db"
+        private val DATABASE_NAME = "save-my-location.db"
 
-        fun get(context: Context): RoomDatabase.Builder<AppDatabase>
-                = Room.databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME)
+        fun create(context: Context): AppDatabase
+                = Room.databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME).build()
     }
 
     abstract val myLocationDao: MyLocationDao
