@@ -1,11 +1,9 @@
 package com.ysered.savemylocationsample
 
 import android.app.Activity
-import android.arch.lifecycle.LifecycleActivity
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
+import android.arch.lifecycle.*
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -22,17 +20,21 @@ import javax.inject.Inject
 
 
 @SuppressWarnings("MissingPermission")
-class MapActivity : LifecycleActivity(), HasActivityInjector, OnMapReadyCallback {
+class MapActivity : AppCompatActivity(), LifecycleRegistryOwner, HasActivityInjector, OnMapReadyCallback {
 
     private val LOCATION_PERMISSION_REQUEST = 1
 
     private lateinit var mapFragment: SupportMapFragment
+
+    private val registry = LifecycleRegistry(this)
 
     @Inject lateinit var injector: DispatchingAndroidInjector<Activity>
     @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
     lateinit var mapViewModel: MapViewModel
 
     override fun activityInjector(): AndroidInjector<Activity> = injector
+
+    override fun getLifecycle(): LifecycleRegistry = registry
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,11 +89,12 @@ class MapActivity : LifecycleActivity(), HasActivityInjector, OnMapReadyCallback
      * Start listening on changes from [MapViewModel]
      */
     private fun bindObservers(googleMap: GoogleMap) {
+        val cameraZoom = mapViewModel.cameraZoom
         mapViewModel.observeLocationUpdates(this, Observer { location ->
             location?.let {
                 val target = mapViewModel.cameraTarget ?: LatLng(location.latitude, location.longitude)
                 googleMap.moveCamera(CameraUpdateFactory.newLatLng(target))
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(target, mapViewModel.cameraZoom))
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(target, cameraZoom))
             }
         })
         mapViewModel.observeLastAddedLocation(this, Observer { latLng ->
