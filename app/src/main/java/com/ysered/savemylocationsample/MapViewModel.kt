@@ -87,4 +87,12 @@ class MapViewModel @Inject constructor(private val addressResolver: AddressResol
                     }
         }
     }
+
+    fun updateMarkers(vararg myLocations: MyLocationEntity) {
+        object : AsyncTask<Unit, Unit, Unit>() {
+            override fun doInBackground(vararg unit: Unit?) {
+                myLocationDao.update(*myLocations)
+            }
+        }.execute()
+    }
 }

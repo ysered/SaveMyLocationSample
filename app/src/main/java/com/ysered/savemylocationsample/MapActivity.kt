@@ -11,6 +11,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.ysered.savemylocationsample.database.MyLocationEntity
 import com.ysered.savemylocationsample.util.processPermissionResults
 import com.ysered.savemylocationsample.util.requestLocationPermissionsIfNeeded
 import com.ysered.savemylocationsample.util.showToast
@@ -76,7 +77,7 @@ class MapActivity : AppCompatActivity(),
                 mapViewModel.resolveAddress(marker)
                 return@setOnMarkerClickListener true
             }
-            it.setOnMarkerDragListener(object: GoogleMap.OnMarkerDragListener {
+            it.setOnMarkerDragListener(object : GoogleMap.OnMarkerDragListener {
                 override fun onMarkerDragStart(marker: Marker?) {
                     mapViewModel.startUpdatingLocation(marker)
                 }
@@ -110,9 +111,12 @@ class MapActivity : AppCompatActivity(),
             }
         })
         mapViewModel.coordinates.observe(this, Observer { entities ->
-            entities?.forEach {
-                addMarker(googleMap, LatLng(it.latitude, it.longitude))
-            }
+            entities?.map { addMarker(googleMap, LatLng(it.latitude, it.longitude)) }
+                    ?.map { MyLocationEntity(it.id, it.position.latitude, it.position.longitude) }
+                    ?.toTypedArray()
+                    ?.let {
+                        mapViewModel.updateMarkers(*it)
+                    }
         })
     }
 

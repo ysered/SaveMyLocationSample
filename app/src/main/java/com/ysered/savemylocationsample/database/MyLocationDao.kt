@@ -8,7 +8,7 @@ interface MyLocationDao {
     fun save(myLocation: MyLocationEntity)
 
     @Update
-    fun update(myLocation: MyLocationEntity)
+    fun update(vararg myLocation: MyLocationEntity): Int
 
     @Query("SELECT * FROM my_location")
     fun getAllLocations(): List<MyLocationEntity>
