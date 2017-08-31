@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.1"
     defaultConfig {
         applicationId "com.ysered.savemylocationsample"
         minSdkVersion 16
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -29,12 +29,18 @@ android {
     }
 }
 
+kapt {
+    generateStubs = true
+}
+
 ext {
-    supportLibraryVersion = '25.3.1'
+    supportLibraryVersion = '26.0.1'
     constraintLayoutVersion = '1.0.2'
-    archLifecycleVersion = '1.0.0-alpha1'
-    roomVersion = '1.0.0-alpha1'
-    playServicesVersion = '10.2.6'
+    dagger2Version = '2.11'
+    archVersion = '1.0.0-alpha9'
+    playServicesVersion = '11.2.0'
+    rxAndroidVersion = '2.0.1'
+    rxJavaVersion = '2.1.0'
     junitVersion = '4.12'
     espressoVersion = '2.2.2'
 }
@@ -42,23 +48,30 @@ ext {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
-    // Kotlin standard library
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-
-    // Support libraries
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "com.android.support:appcompat-v7:$supportLibraryVersion"
     compile "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
 
-    // Architecture components libraries
-    compile "android.arch.lifecycle:extensions:$archLifecycleVersion"
-    annotationProcessor "android.arch.lifecycle:compiler:$archLifecycleVersion"
-    compile "android.arch.persistence.room:runtime:$roomVersion"
-    annotationProcessor "android.arch.persistence.room:compiler:$roomVersion"
-    kapt "android.arch.persistence.room:compiler:$roomVersion"
+    // Dagger 2
+    compile "com.google.dagger:dagger:$dagger2Version"
+    compile "com.google.dagger:dagger-android:$dagger2Version"
+    compile "com.google.dagger:dagger-android-support:$dagger2Version"
+    kapt "com.google.dagger:dagger-android-processor:$dagger2Version"
+    kapt "com.google.dagger:dagger-compiler:$dagger2Version"
+
+    // Architecture components
+    compile "android.arch.lifecycle:extensions:$archVersion"
+    kapt "android.arch.lifecycle:compiler:$archVersion"
+    compile "android.arch.persistence.room:runtime:$archVersion"
+    kapt "android.arch.persistence.room:compiler:$archVersion"
 
     // Play services
     compile "com.google.android.gms:play-services-location:$playServicesVersion"
     compile "com.google.android.gms:play-services-maps:$playServicesVersion"
+
+    // RxJava 2
+    compile "io.reactivex.rxjava2:rxandroid:$rxAndroidVersion"
+    compile "io.reactivex.rxjava2:rxjava:$rxJavaVersion"
 
     // Testing libraries
     testCompile "junit:junit:$junitVersion"

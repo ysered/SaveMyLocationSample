@@ -1,38 +1,33 @@
 package com.ysered.savemylocationsample
 
-import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
+import android.annotation.SuppressLint
 import android.arch.lifecycle.LifecycleOwner
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
-import android.location.Geocoder
+import android.arch.lifecycle.ViewModel
 import android.location.Location
+import android.os.AsyncTask
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
-import com.ysered.extension.debug
-import java.util.*
+import com.ysered.savemylocationsample.database.MyLocationDao
+import com.ysered.savemylocationsample.database.MyLocationEntity
+import com.ysered.savemylocationsample.util.debug
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
+import javax.inject.Inject
 
-class MapViewModel(application: Application) : AndroidViewModel(application) {
+@SuppressLint("StaticFieldLeak")
+class MapViewModel @Inject constructor(private val addressResolver: AddressResolver,
+                                       private val locationUpdates: LocationUpdatesLiveData,
+                                       private val myLocationDao: MyLocationDao)
+    : ViewModel() {
 
-    private val geoCoder = Geocoder(application.applicationContext, Locale.getDefault())
+    private val DEFAULT_CAMERA_ZOOM = 16f
 
-    private val locationUpdates = LocationUpdatesLiveData(application.applicationContext)
+    private var updateEntityObservable: Observable<MyLocationEntity>? = null
 
-    private val lastAddedCoordinate = object : MutableLiveData<LatLng>() {
-        override fun getValue(): LatLng? {
-            return coordinates.last()
-        }
-
-        override fun setValue(value: LatLng?) {
-            super.setValue(value)
-            value?.let {
-                coordinates += value
-            }
-        }
-    }
-
-    val coordinates: MutableList<LatLng> = mutableListOf()
+    val coordinates = MutableLiveData<List<MyLocationEntity>>()
 
     var cameraPosition: CameraPosition? = null
 
@@ -40,27 +35,64 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         get() = cameraPosition?.target
 
     val cameraZoom: Float
-        get() = cameraPosition?.zoom ?: 16f
+        get() = cameraPosition?.zoom ?: DEFAULT_CAMERA_ZOOM
+
 
     fun observeLocationUpdates(lifecycleOwner: LifecycleOwner, observer: Observer<Location>) {
         locationUpdates.observe(lifecycleOwner, observer)
     }
 
-    fun observeLastAddedLocation(lifecycleOwner: LifecycleOwner, observer: Observer<LatLng>) {
-        lastAddedCoordinate.observe(lifecycleOwner, observer)
+    fun loadCoordinatesAsync() {
+        object : AsyncTask<Unit, Unit, List<MyLocationEntity>>() {
+            override fun doInBackground(vararg unit: Unit?): List<MyLocationEntity>
+                    = myLocationDao.getAllLocations()
+
+            override fun onPostExecute(result: List<MyLocationEntity>?) {
+                coordinates.value = result
+            }
+        }.execute()
     }
 
-    fun addCoordinate(latLng: LatLng) {
-        lastAddedCoordinate.value = latLng
+    fun saveMarker(marker: Marker) {
+        val position = marker.position
+        val entity = MyLocationEntity(marker.id, position.latitude, position.longitude)
+        object : AsyncTask<Unit, Unit, Unit>() {
+            override fun doInBackground(vararg unit: Unit?) {
+                myLocationDao.save(entity)
+            }
+        }.execute()
     }
 
     fun resolveAddress(marker: Marker) {
-        val addresses = geoCoder.getFromLocation(marker.position.latitude, marker.position.longitude, 1)
-        if (addresses.isNotEmpty()) {
-            val address = addresses.first()
-            val fullAddress = "${address.getAddressLine(0)}, ${address.locality}, ${address.countryName}"
-            debug(fullAddress)
-            // TODO: 1) resolve in different thread 2) store in database
+        val fullAddress = addressResolver.getFullAddress(marker.position)
+        debug("Resolved address: $fullAddress")
+    }
+
+    fun startUpdatingLocation(marker: Marker?) {
+        marker?.let {
+            updateEntityObservable = Observable.fromCallable {
+                myLocationDao.getLocationById(marker.id)
+            }
         }
+    }
+
+    fun finishUpdatingLocation(marker: Marker?) {
+        marker?.let {
+            val position = marker.position
+            updateEntityObservable?.subscribeOn(Schedulers.newThread())
+                    ?.subscribe { myLocationToUpdate ->
+                        myLocationToUpdate.latitude = position.latitude
+                        myLocationToUpdate.longitude = position.longitude
+                        myLocationDao.update(myLocationToUpdate)
+                    }
+        }
+    }
+
+    fun updateMarkers(vararg myLocations: MyLocationEntity) {
+        object : AsyncTask<Unit, Unit, Unit>() {
+            override fun doInBackground(vararg unit: Unit?) {
+                myLocationDao.update(*myLocations)
+            }
+        }.execute()
     }
 }
