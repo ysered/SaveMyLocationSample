@@ -10,9 +10,12 @@ interface MyLocationDao {
     @Update
     fun update(vararg myLocation: MyLocationEntity): Int
 
+    @Delete
+    fun delete(vararg myLocation: MyLocationEntity): Int
+
     @Query("SELECT * FROM my_location")
     fun getAllLocations(): List<MyLocationEntity>
 
-    @Query("SELECT * FROM my_location WHERE id = :arg0")
-    fun getLocationById(id: String): MyLocationEntity
+    @Query("SELECT * FROM my_location WHERE position_id = :arg0")
+    fun getLocationByPositionId(positionId: String): MyLocationEntity
 }

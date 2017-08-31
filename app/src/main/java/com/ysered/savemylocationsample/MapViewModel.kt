@@ -12,7 +12,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.ysered.savemylocationsample.database.MyLocationDao
 import com.ysered.savemylocationsample.database.MyLocationEntity
-import com.ysered.savemylocationsample.util.debug
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
@@ -25,7 +24,7 @@ class MapViewModel @Inject constructor(private val addressResolver: AddressResol
 
     private val DEFAULT_CAMERA_ZOOM = 16f
 
-    private var updateEntityObservable: Observable<MyLocationEntity>? = null
+    private var updatePositionId: String? = null
 
     val coordinates = MutableLiveData<List<MyLocationEntity>>()
 
@@ -36,7 +35,6 @@ class MapViewModel @Inject constructor(private val addressResolver: AddressResol
 
     val cameraZoom: Float
         get() = cameraPosition?.zoom ?: DEFAULT_CAMERA_ZOOM
-
 
     fun observeLocationUpdates(lifecycleOwner: LifecycleOwner, observer: Observer<Location>) {
         locationUpdates.observe(lifecycleOwner, observer)
@@ -54,37 +52,42 @@ class MapViewModel @Inject constructor(private val addressResolver: AddressResol
     }
 
     fun saveMarker(marker: Marker) {
+        val id = marker.id
         val position = marker.position
-        val entity = MyLocationEntity(marker.id, position.latitude, position.longitude)
         object : AsyncTask<Unit, Unit, Unit>() {
             override fun doInBackground(vararg unit: Unit?) {
+                val entity = MyLocationEntity(
+                        positionId = id,
+                        latitude = position.latitude,
+                        longitude = position.longitude
+                )
                 myLocationDao.save(entity)
             }
         }.execute()
     }
 
-    fun resolveAddress(marker: Marker) {
-        val fullAddress = addressResolver.getFullAddress(marker.position)
-        debug("Resolved address: $fullAddress")
-    }
+    fun resolveAddress(position: LatLng): String = addressResolver.getFullAddress(position)
 
     fun startUpdatingLocation(marker: Marker?) {
-        marker?.let {
-            updateEntityObservable = Observable.fromCallable {
-                myLocationDao.getLocationById(marker.id)
-            }
-        }
+        updatePositionId = marker?.id
     }
 
     fun finishUpdatingLocation(marker: Marker?) {
-        marker?.let {
-            val position = marker.position
-            updateEntityObservable?.subscribeOn(Schedulers.newThread())
-                    ?.subscribe { myLocationToUpdate ->
-                        myLocationToUpdate.latitude = position.latitude
-                        myLocationToUpdate.longitude = position.longitude
-                        myLocationDao.update(myLocationToUpdate)
+        if (updatePositionId != null && marker != null) {
+            val latitude = marker.position.latitude
+            val longitude = marker.position.longitude
+            Observable.just(updatePositionId)
+                    .map { id ->
+                        myLocationDao.getLocationByPositionId(id)
                     }
+                    .doOnNext { entity ->
+                        entity.latitude = latitude
+                        entity.longitude = longitude
+                        myLocationDao.update(entity)
+                        updatePositionId = null
+                    }
+                    .subscribeOn(Schedulers.newThread())
+                    .subscribe()
         }
     }
 
@@ -92,6 +95,18 @@ class MapViewModel @Inject constructor(private val addressResolver: AddressResol
         object : AsyncTask<Unit, Unit, Unit>() {
             override fun doInBackground(vararg unit: Unit?) {
                 myLocationDao.update(*myLocations)
+            }
+        }.execute()
+    }
+
+    fun removeMarkers(markers: List<Marker>) {
+        val positionsToDelete = markers.map { it.id }.toList()
+        object : AsyncTask<Unit, Unit, Unit>() {
+            override fun doInBackground(vararg unit: Unit?) {
+                val entitiesToDelete = positionsToDelete
+                        .map { myLocationDao.getLocationByPositionId(it) }
+                        .toTypedArray()
+                myLocationDao.delete(*entitiesToDelete)
             }
         }.execute()
     }

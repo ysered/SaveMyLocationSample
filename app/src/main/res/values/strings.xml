@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">SaveMyLocationSample</string>
     <string name="enable_location_permission">Enable location permission</string>
+    <string name="delete">Delete</string>
 </resources>
