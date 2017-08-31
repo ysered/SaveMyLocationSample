@@ -7,11 +7,11 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModel
 import android.location.Location
 import android.os.AsyncTask
-import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.ysered.savemylocationsample.database.MyLocationDao
 import com.ysered.savemylocationsample.database.MyLocationEntity
+import com.ysered.savemylocationsample.util.MapCameraPreferences
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
@@ -19,22 +19,13 @@ import javax.inject.Inject
 @SuppressLint("StaticFieldLeak")
 class MapViewModel @Inject constructor(private val addressResolver: AddressResolver,
                                        private val locationUpdates: LocationUpdatesLiveData,
-                                       private val myLocationDao: MyLocationDao)
+                                       private val myLocationDao: MyLocationDao,
+                                       val mapCameraPreferences: MapCameraPreferences)
     : ViewModel() {
-
-    private val DEFAULT_CAMERA_ZOOM = 16f
 
     private var updatePositionId: String? = null
 
     val coordinates = MutableLiveData<List<MyLocationEntity>>()
-
-    var cameraPosition: CameraPosition? = null
-
-    val cameraTarget: LatLng?
-        get() = cameraPosition?.target
-
-    val cameraZoom: Float
-        get() = cameraPosition?.zoom ?: DEFAULT_CAMERA_ZOOM
 
     fun observeLocationUpdates(lifecycleOwner: LifecycleOwner, observer: Observer<Location>) {
         locationUpdates.observe(lifecycleOwner, observer)

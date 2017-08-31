@@ -80,7 +80,7 @@ class MapActivity : AppCompatActivity(),
                 }
             }
             it.setOnCameraMoveListener {
-                mapViewModel.cameraPosition = it.cameraPosition
+                mapViewModel.mapCameraPreferences.cameraPosition = it.cameraPosition
             }
             it.setOnMarkerClickListener { marker ->
                 if (selectedMarkers.isNotEmpty()) {
@@ -116,12 +116,12 @@ class MapActivity : AppCompatActivity(),
      * Start listening on changes from [MapViewModel]
      */
     private fun bindObservers(googleMap: GoogleMap) {
-        val cameraZoom = mapViewModel.cameraZoom
+        val cameraZoom = mapViewModel.mapCameraPreferences.cameraZoom
         mapViewModel.observeLocationUpdates(this, Observer { location ->
             location?.let {
-                val target = mapViewModel.cameraTarget ?: LatLng(location.latitude, location.longitude)
+                val target = mapViewModel.mapCameraPreferences.cameraTarget ?: LatLng(location.latitude, location.longitude)
                 googleMap.moveCamera(CameraUpdateFactory.newLatLng(target))
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(target, cameraZoom))
+                googleMap.animateCamera(CameraUpdateFactory.zoomTo(cameraZoom), 800, null)
             }
         })
         mapViewModel.coordinates.observe(this, Observer { entities ->
