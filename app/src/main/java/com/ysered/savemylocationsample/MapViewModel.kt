@@ -14,6 +14,8 @@ import com.ysered.savemylocationsample.database.MyLocationEntity
 import com.ysered.savemylocationsample.util.MapCameraPreferences
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.launch
 import javax.inject.Inject
 
 @SuppressLint("StaticFieldLeak")
@@ -45,16 +47,14 @@ class MapViewModel @Inject constructor(private val addressResolver: AddressResol
     fun saveMarker(marker: Marker) {
         val id = marker.id
         val position = marker.position
-        object : AsyncTask<Unit, Unit, Unit>() {
-            override fun doInBackground(vararg unit: Unit?) {
-                val entity = MyLocationEntity(
-                        positionId = id,
-                        latitude = position.latitude,
-                        longitude = position.longitude
-                )
-                myLocationDao.save(entity)
-            }
-        }.execute()
+        launch(CommonPool) {
+            val entity = MyLocationEntity(
+                    positionId = id,
+                    latitude = position.latitude,
+                    longitude = position.longitude
+            )
+            myLocationDao.save(entity)
+        }
     }
 
     fun resolveAddress(position: LatLng): String = addressResolver.getFullAddress(position)
@@ -83,22 +83,24 @@ class MapViewModel @Inject constructor(private val addressResolver: AddressResol
     }
 
     fun updateMarkers(vararg myLocations: MyLocationEntity) {
-        object : AsyncTask<Unit, Unit, Unit>() {
-            override fun doInBackground(vararg unit: Unit?) {
-                myLocationDao.update(*myLocations)
-            }
-        }.execute()
+        launch(CommonPool) {
+            myLocationDao.update(*myLocations)
+        }
     }
 
     fun removeMarkers(markers: List<Marker>) {
-        val positionsToDelete = markers.map { it.id }.toList()
-        object : AsyncTask<Unit, Unit, Unit>() {
-            override fun doInBackground(vararg unit: Unit?) {
-                val entitiesToDelete = positionsToDelete
-                        .map { myLocationDao.getLocationByPositionId(it) }
-                        .toTypedArray()
-                myLocationDao.delete(*entitiesToDelete)
-            }
-        }.execute()
+        val positionIdsToDelete = markers.map { it.id }.toList()
+        launch(CommonPool) {
+            val entitiesToDelete = positionIdsToDelete
+                    .map { myLocationDao.getLocationByPositionId(it) }
+                    .toTypedArray()
+            myLocationDao.delete(*entitiesToDelete)
+        }
     }
+
+    /**
+     * Wraps DAO call into suspend function.
+     */
+    private suspend fun getAllLocations(): List<MyLocationEntity>
+            = myLocationDao.getAllLocations()
 }

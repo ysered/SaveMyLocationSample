@@ -3,6 +3,8 @@ package com.ysered.savemylocationsample.util
 import android.content.SharedPreferences
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.launch
 
 /**
  * Stores some preferences of camera on the [com.google.android.gms.maps.GoogleMap].
@@ -25,11 +27,13 @@ class MapCameraPreferences(prefs: SharedPreferences) {
         set(value) {
             field = value
             value?.let {
-                cameraLatitude = value.target.latitude.toFloat()
-                cameraLongitude = value.target.longitude.toFloat()
-                cameraZoom = value.zoom
-                cameraTilt = value.tilt
-                cameraBearing = value.bearing
+                launch(CommonPool) {
+                    cameraLatitude = value.target.latitude.toFloat()
+                    cameraLongitude = value.target.longitude.toFloat()
+                    cameraZoom = value.zoom
+                    cameraTilt = value.tilt
+                    cameraBearing = value.bearing
+                }
             }
         }
 }

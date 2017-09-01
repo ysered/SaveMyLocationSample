@@ -33,8 +33,15 @@ kapt {
     generateStubs = true
 }
 
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
+
 ext {
-    supportLibraryVersion = '26.0.1'
+    coroutinesVersion = '0.18'
+    supportLibraryVersion = '26.0.2'
     constraintLayoutVersion = '1.0.2'
     dagger2Version = '2.11'
     archVersion = '1.0.0-alpha9'
@@ -49,6 +56,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
     compile "com.android.support:appcompat-v7:$supportLibraryVersion"
     compile "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
 
