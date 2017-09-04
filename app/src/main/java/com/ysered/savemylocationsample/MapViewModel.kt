@@ -6,14 +6,11 @@ import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModel
 import android.location.Location
-import android.os.AsyncTask
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
-import com.ysered.savemylocationsample.database.MyLocationDao
-import com.ysered.savemylocationsample.database.MyLocationEntity
+import com.ysered.savemylocationsample.coroutines.experimental.Android
+import com.ysered.savemylocationsample.database.*
 import com.ysered.savemylocationsample.util.MapCameraPreferences
-import io.reactivex.Observable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
 import javax.inject.Inject
@@ -29,19 +26,13 @@ class MapViewModel @Inject constructor(private val addressResolver: AddressResol
 
     val coordinates = MutableLiveData<List<MyLocationEntity>>()
 
-    fun observeLocationUpdates(lifecycleOwner: LifecycleOwner, observer: Observer<Location>) {
-        locationUpdates.observe(lifecycleOwner, observer)
-    }
+    fun observeLocationUpdates(lifecycleOwner: LifecycleOwner, observer: Observer<Location>) =
+            locationUpdates.observe(lifecycleOwner, observer)
 
     fun loadCoordinatesAsync() {
-        object : AsyncTask<Unit, Unit, List<MyLocationEntity>>() {
-            override fun doInBackground(vararg unit: Unit?): List<MyLocationEntity>
-                    = myLocationDao.getAllLocations()
-
-            override fun onPostExecute(result: List<MyLocationEntity>?) {
-                coordinates.value = result
-            }
-        }.execute()
+        launch(Android) {
+            coordinates.value = myLocationDao.getAllLocationsAsync().await()
+        }
     }
 
     fun saveMarker(marker: Marker) {
@@ -59,26 +50,19 @@ class MapViewModel @Inject constructor(private val addressResolver: AddressResol
 
     fun resolveAddress(position: LatLng): String = addressResolver.getFullAddress(position)
 
-    fun startUpdatingLocation(marker: Marker?) {
-        updatePositionId = marker?.id
+    fun startUpdatingLocation(positionId: String) {
+        updatePositionId = positionId
     }
 
-    fun finishUpdatingLocation(marker: Marker?) {
-        if (updatePositionId != null && marker != null) {
-            val latitude = marker.position.latitude
-            val longitude = marker.position.longitude
-            Observable.just(updatePositionId)
-                    .map { id ->
-                        myLocationDao.getLocationByPositionId(id)
-                    }
-                    .doOnNext { entity ->
-                        entity.latitude = latitude
-                        entity.longitude = longitude
-                        myLocationDao.update(entity)
-                        updatePositionId = null
-                    }
-                    .subscribeOn(Schedulers.newThread())
-                    .subscribe()
+    fun finishUpdatingLocation(marker: Marker) {
+        updatePositionId?.let {
+            launch(Android) {
+                val entity = myLocationDao.getLocationPositionByIdAsync(updatePositionId!!).await()
+                entity.latitude = marker.position.latitude
+                entity.longitude = marker.position.longitude
+                myLocationDao.updateAsync(entity)
+            }
+            updatePositionId = null
         }
     }
 
@@ -97,10 +81,4 @@ class MapViewModel @Inject constructor(private val addressResolver: AddressResol
             myLocationDao.delete(*entitiesToDelete)
         }
     }
-
-    /**
-     * Wraps DAO call into suspend function.
-     */
-    private suspend fun getAllLocations(): List<MyLocationEntity>
-            = myLocationDao.getAllLocations()
 }
