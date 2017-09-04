@@ -29,37 +29,41 @@ class MapViewModel @Inject constructor(private val addressResolver: AddressResol
     fun observeLocationUpdates(lifecycleOwner: LifecycleOwner, observer: Observer<Location>) =
             locationUpdates.observe(lifecycleOwner, observer)
 
-    fun loadCoordinatesAsync() =
-            launch(UI) {
-                coordinates.value = myLocationDao.getAllLocationsAsync().await()
-            }
+    fun loadCoordinatesAsync() {
+        launch(UI) {
+            coordinates.value = myLocationDao.getAllLocationsAsync().await()
+        }
+    }
 
-    fun saveMarker(marker: Marker) =
-            launch(UI) {
-                val entity = MyLocationEntity(
-                        positionId = marker.id,
-                        latitude = marker.position.latitude,
-                        longitude = marker.position.longitude
-                )
-                myLocationDao.saveAsync(entity)
-            }
+    fun saveMarker(marker: Marker) {
+        launch(UI) {
+            val entity = MyLocationEntity(
+                    positionId = marker.id,
+                    latitude = marker.position.latitude,
+                    longitude = marker.position.longitude
+            )
+            myLocationDao.saveAsync(entity)
+        }
+    }
 
-    fun resolveAddress(position: LatLng): String = addressResolver.getFullAddress(position)
+    fun resolveAddress(position: LatLng): String =
+            addressResolver.getFullAddress(position)
 
     fun startMovingLocation(positionId: String) {
         movePositionId = positionId
     }
 
-    fun finishMovingLocation(marker: Marker) =
-            launch(UI) {
-                movePositionId?.let {
-                    val entity = myLocationDao.getLocationByPositionIdAsync(movePositionId!!).await()
-                    entity.latitude = marker.position.latitude
-                    entity.longitude = marker.position.longitude
-                    myLocationDao.updateAsync(entity)
-                    movePositionId = null
-                }
+    fun finishMovingLocation(marker: Marker) {
+        launch(UI) {
+            movePositionId?.let {
+                val entity = myLocationDao.getLocationByPositionIdAsync(movePositionId!!).await()
+                entity.latitude = marker.position.latitude
+                entity.longitude = marker.position.longitude
+                myLocationDao.updateAsync(entity)
+                movePositionId = null
             }
+        }
+    }
 
 
     fun updateMarkers(vararg myLocations: MyLocationEntity) {

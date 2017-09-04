@@ -1,6 +1,7 @@
 package com.ysered.savemylocationsample.database
 
 import android.arch.persistence.room.*
+import com.ysered.savemylocationsample.util.debug
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 
@@ -31,7 +32,11 @@ fun MyLocationDao.saveAsync(myLocation: MyLocationEntity) = async(CommonPool) {
 }
 
 fun MyLocationDao.deleteAsync(vararg myLocation: MyLocationEntity) = async(CommonPool) {
-    delete(*myLocation)
+    myLocation.forEach {
+        debug("Deleting entity: $it")
+    }
+    val rowsDeleted = delete(*myLocation)
+    debug("Deleted rows: $rowsDeleted")
 }
 
 fun MyLocationDao.getAllLocationsAsync() = async(CommonPool) {
