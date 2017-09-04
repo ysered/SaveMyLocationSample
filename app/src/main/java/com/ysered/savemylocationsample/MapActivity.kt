@@ -92,13 +92,13 @@ class MapActivity : AppCompatActivity(),
                 override fun onMarkerDragStart(marker: Marker?) {
                     marker?.let {
                         selectMarker(marker)
-                        mapViewModel.startUpdatingLocation(marker.id)
+                        mapViewModel.startMovingLocation(marker.id)
                     }
                 }
 
                 override fun onMarkerDragEnd(marker: Marker?) {
                     marker?.let {
-                        mapViewModel.finishUpdatingLocation(marker)
+                        mapViewModel.finishMovingLocation(marker)
                     }
                 }
 

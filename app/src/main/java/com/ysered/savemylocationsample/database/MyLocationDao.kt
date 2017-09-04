@@ -23,22 +23,25 @@ interface MyLocationDao {
 }
 
 /**
- * Wraps [MyLocationDao.getAllLocations] into coroutine.
+ * Coroutine wrappers.
  */
+
+fun MyLocationDao.saveAsync(myLocation: MyLocationEntity) = async(CommonPool) {
+    save(myLocation)
+}
+
+fun MyLocationDao.deleteAsync(vararg myLocation: MyLocationEntity) = async(CommonPool) {
+    delete(*myLocation)
+}
+
 fun MyLocationDao.getAllLocationsAsync() = async(CommonPool) {
     getAllLocations()
 }
 
-/**
- * Wraps [MyLocationDao.getLocationByPositionId] into coroutine.
- */
-fun MyLocationDao.getLocationPositionByIdAsync(positionId: String) = async(CommonPool) {
+fun MyLocationDao.getLocationByPositionIdAsync(positionId: String) = async(CommonPool) {
     getLocationByPositionId(positionId)
 }
 
-/**
- * Wraps [MyLocationDao.updateAsync] into coroutine.
- */
 fun MyLocationDao.updateAsync(entity: MyLocationEntity) = async(CommonPool) {
     update(entity)
 }
