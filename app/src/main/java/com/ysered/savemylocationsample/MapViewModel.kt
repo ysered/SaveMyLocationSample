@@ -8,10 +8,10 @@ import android.arch.lifecycle.ViewModel
 import android.location.Location
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
-import com.ysered.savemylocationsample.coroutines.experimental.Android
 import com.ysered.savemylocationsample.database.*
 import com.ysered.savemylocationsample.util.MapCameraPreferences
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import javax.inject.Inject
 
@@ -30,12 +30,12 @@ class MapViewModel @Inject constructor(private val addressResolver: AddressResol
             locationUpdates.observe(lifecycleOwner, observer)
 
     fun loadCoordinatesAsync() =
-            launch(Android) {
+            launch(UI) {
                 coordinates.value = myLocationDao.getAllLocationsAsync().await()
             }
 
     fun saveMarker(marker: Marker) =
-            launch(Android) {
+            launch(UI) {
                 val entity = MyLocationEntity(
                         positionId = marker.id,
                         latitude = marker.position.latitude,
@@ -51,7 +51,7 @@ class MapViewModel @Inject constructor(private val addressResolver: AddressResol
     }
 
     fun finishMovingLocation(marker: Marker) =
-            launch(Android) {
+            launch(UI) {
                 movePositionId?.let {
                     val entity = myLocationDao.getLocationByPositionIdAsync(movePositionId!!).await()
                     entity.latitude = marker.position.latitude
